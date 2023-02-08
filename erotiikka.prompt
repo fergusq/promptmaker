@@ -1,0 +1,38 @@
+{
+
+def make_reporter(message):
+	def print_report(reason, percent):
+		import rich, rich.panel
+		reason = {
+			"hate": "vihapuhe",
+			"hate/threatening": "vihapuhe/uhkaus",
+			"self-harm": "itsetuhoisuus",
+			"sexual": "seksuaalisuus",
+			"sexual/minors": "seksuaalisuus/alaikäiset",
+			"violence": "väkivalta",
+			"violence/graphic": "väkivalta/graafinen",
+		}[reason]
+		percent = f"{100*percent:.2f}".replace(".", ",")
+		rich.print(rich.panel.Panel.fit(f"[bold red]{message}[/bold red]\nSYY: [i]{reason}[/i] ({percent} %)"))
+	
+	return print_report
+
+state.globals["make_reporter"] = make_reporter
+state.globals["threshold"] = 0.1
+
+}
+
+Tehtäväsi on kirjoittaa eroottinen runo. Runon on oltava kiihottava ja vihjaileva. Käytä ronskia kieltä vain, jos runon aiheessakin käytetään ronskia kieltä.
+
+Runon aihe: {safe_input("Syötä runon aihe: ", make_reporter("SYÖTTEESI ON HYLÄTTY."))}
+
+Runon teksti:<text TEKSTI>
+
+{
+import rich, rich.panel, rich.markdown
+rich.print(rich.panel.Panel.fit(TEKSTI.strip()))
+if not check_string(TEKSTI, make_reporter("TULOS HYLÄTTY.")):
+	rich.print(rich.panel.Panel.fit(f"[bold green]TULOS HYVÄKSYTTY.[/bold green]"))
+
+input("Paina enteriä jatkaaksesi")
+}

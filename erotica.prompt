@@ -1,0 +1,28 @@
+{
+
+def make_reporter(message):
+	def print_report(reason, percent):
+		import rich, rich.panel
+		percent = f"{100*percent:.2f}"
+		rich.print(rich.panel.Panel.fit(f"[bold red]{message}[/bold red]\nREASON: [i]{reason}[/i] ({percent}%)"))
+	
+	return print_report
+
+state.globals["make_reporter"] = make_reporter
+
+}
+
+Your task is to write an erotic poem. The poem must be hot and sexy.
+
+Topic of the poem: {safe_input("Prompt: ", make_reporter("YOUR PROMPT WAS REJECTED."))}
+
+Text of the poem:<text TEKSTI>
+
+{
+import rich, rich.panel, rich.markdown
+rich.print(rich.panel.Panel.fit(TEKSTI.strip()))
+if not check_string(TEKSTI, make_reporter("RESULT REJECTED.")):
+	rich.print(rich.panel.Panel.fit(f"[bold green]RESULT ACCEPTED.[/bold green]"))
+
+input("Press Enter to continue")
+}

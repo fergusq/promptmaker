@@ -1,0 +1,4 @@
+{while True}\
+Human: {input("Human: ")}
+Friendly AI: <line ANSWER>{print("AI:", ANSWER.strip())}
+{endwhile}

@@ -1,0 +1,6 @@
+{while True}\
+User: {input("> ")}
+
+Chip: <line ANS>{print("Chip:",ANS)}
+
+{endwhile}
