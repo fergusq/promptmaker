@@ -10,7 +10,7 @@ from promptmaker.backends.transformers import TransformersGenerator
 from promptmaker.backends.openai import OpenAIGenerator
 
 import openai
-import rich
+import rich, rich.console
 
 reader = Reader()
 reader.param_confs["word"] = GenerationParams(
@@ -106,6 +106,7 @@ if args.script:
 		state.globals["check_string"] = check_string
 		state.globals["status_text"] = "Tekoäly miettii..."
 		state.globals["status_spinner"] = "dots"
+		state.globals["console"] = console
 		template.exec(state)
 	
 		if not args.loop:
