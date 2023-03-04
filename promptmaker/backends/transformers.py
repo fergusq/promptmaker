@@ -88,18 +88,27 @@ class TransformersGenerator(Generator):
 				stopping_criteria=stopping_criteria
 			)
 		else:
+			if params.temperature > 0:
+				kwargs = {
+					"num_beams": 1,
+					"do_sample": True,
+					"temperature": params.temperature,
+				}
+			else:
+				kwargs = {
+					"num_beams": 1,
+					"do_sample": False,
+				}
 			out = self.model.generate(
 				input_ids,
+				num_return_sequences=1,
 				min_length=1,
 				max_new_tokens=params.max_len, 
-				num_beams=1,
-				num_return_sequences=1,
-				do_sample=True,
-				temperature=params.temperature,
 				stopping_criteria=StoppingCriteriaList([stopping_criteria]),
 				logits_processor=logits_processor,
 				attention_mask=tokenized.get("attention_mask", None),
 				pad_token_id=self.tokenizer.eos_token_id,
+				**kwargs,
 			)
 			out_ids = out[0, input_ids.shape[-1]:]
 		#print("OUT", out_ids)
@@ -137,12 +146,14 @@ class TransformersGenerator(Generator):
 					logits = self.model.lm_head(h_last)
 
 					logits = logits.softmax(dim=-1)
-					logits.pow_(1/temperature)
+
+					if temperature > 0:
+						logits.pow_(1/temperature)
 
 					if space and len(result) == 0:
 						logits[0, self.no_space_tokens] = 0
 
-					next_token = logits.multinomial(1)[0]
+					next_token = logits.multinomial(1)[0] if temperature > 0 else logits.argmax()
 					result.append(int(next_token[0]))
 					#print(result)
 					t = self.tokenizer.decode(next_token)

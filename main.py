@@ -52,8 +52,7 @@ else:
 
 import readline
 
-if args.script:
-
+def run_script(script: Path, loop: bool):
 	console = rich.console.Console()
 
 	class StatusGenerator(Generator):
@@ -96,11 +95,9 @@ if args.script:
 		return False
 
 	while True:
-		template_text = args.script.read_text()
+		template_text = script.read_text()
 		template = reader.read(template_text)
 		state = GeneratorState(StatusGenerator(generator))
-		#for var, val in args.var:
-		#	state.vars[var] = val
 		state.globals["threshold"] = 0.5
 		state.globals["safe_input"] = safe_input
 		state.globals["check_string"] = check_string
@@ -109,19 +106,33 @@ if args.script:
 		state.globals["console"] = console
 		template.exec(state)
 	
-		if not args.loop:
+		if not loop:
 			break
 
+
+if args.script:
+	run_script(args.script, args.loop)
+	
 else:
 
 	while True:
 		try:
-			template_text = input("> ").strip()
+			template_text = input("> ").strip().replace("\\n", "\n")
+		except KeyboardInterrupt:
+			continue
 		except EOFError:
 			break
+	
+		if template_text.startswith("/script "):
+			arg = template_text[template_text.index(" ")+1:]
+			script = Path(arg)
+			run_script(script, False)
 
-		template = reader.read(template_text)
-		state = template.apply(generator)
-		print(state.prompt, state.vars)
+		try:
+			template = reader.read(template_text)
+			state = template.apply(generator)
+			print(state.prompt, state.vars)
+		except KeyboardInterrupt:
+			continue
 
 	# My name is <word NAME!>. I think {NAME} is a cool name, because <sentence REASON>.
