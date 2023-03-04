@@ -2,6 +2,7 @@ import re
 import argparse
 from pathlib import Path
 from typing import Any, Callable
+import traceback
 
 from promptmaker.reader import Reader
 from promptmaker.prompt import GeneratorState
@@ -133,6 +134,9 @@ else:
 			state = template.apply(generator)
 			print(state.prompt, state.vars)
 		except KeyboardInterrupt:
+			continue
+		except:
+			traceback.print_exc()
 			continue
 
 	# My name is <word NAME!>. I think {NAME} is a cool name, because <sentence REASON>.
