@@ -118,7 +118,9 @@ else:
 
 	while True:
 		try:
+			readline.set_auto_history(True)
 			template_text = input("> ").strip().replace("\\n", "\n")
+			readline.set_auto_history(False)
 		except KeyboardInterrupt:
 			continue
 		except EOFError:
