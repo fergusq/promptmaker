@@ -6,7 +6,7 @@ class Generator:
 	def generate(self, prompt: str, params: "GenerationParams") -> str:
 		...
 	
-	def score(self, prompt: str) -> float:
+	def scores(self, prompt: list[str]) -> list[float]:
 		...
 
 

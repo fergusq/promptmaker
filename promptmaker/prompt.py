@@ -133,10 +133,9 @@ class ReadAlternativeToVariableAction(PromptAction):
 			raise NotImplementedError
 		
 		results: list[tuple[float, str, str]] = []
-		for alternative in self.alternatives:
-			prompt = state.prompt + alternative
-			score = state.generator.score(prompt)
-			results.append((score, prompt, alternative))
+		scores = state.generator.scores([state.prompt + alternative for alternative in self.alternatives])
+		for alternative, score in zip(self.alternatives, scores):
+			results.append((score, state.prompt + alternative, alternative))
 		
 		state.prompt, state.vars[self.var] = sorted(results, key=lambda s: -s[0])[0][1:]
 	
