@@ -83,7 +83,7 @@ class TransformersGenerator(Generator):
 				log_probs = torch.log_softmax(logits[0, j, :], -1)
 				scores[i] += log_probs[input_id]
 		
-			scores[i] /= (input_ids.shape[-1] - 1)
+			scores[i] /= (input_ids.shape[-1] - prefix_length)
 		
 		return scores.tolist()
 	
