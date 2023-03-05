@@ -166,7 +166,7 @@ class Reader:
 
 		var_code = var_token.get_content()
 
-		if m := re.fullmatch(r"\(([^)]+\|[^)]+)) *([^?]*)(\??)", var_code):
+		if m := re.fullmatch(r"\(([^)]+\|[^)]+)\) *([^?]*)(\??)", var_code):
 			alternatives = m.group(1).split("|")
 			variable = m.group(2)
 			greedy = m.group(3) == "?"
