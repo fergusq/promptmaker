@@ -70,7 +70,7 @@ class TransformersGenerator(Generator):
 
 		logits = self.model(input_ids).logits
 		score = 0
-		for i, input_id in enumerate(input_ids[0, :]):
+		for i, input_id in enumerate(input_ids[0, 1:]):
 			log_probs = torch.log_softmax(logits[0, i, :], -1)
 			score += log_probs[input_id]
 		
