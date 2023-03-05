@@ -61,20 +61,31 @@ class TransformersGenerator(Generator):
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.model.to(self.device)
 	
-	def score(self, prompt: str):
+	def scores(self, prompts: list[str]):
 		if self.petals:
 			raise NotImplementedError
 
-		tokenized = self.tokenizer(prompt, return_tensors="pt")
-		input_ids = tokenized["input_ids"].to(self.device) # type: ignore
-
-		logits = self.model(input_ids).logits
-		score = 0
-		for i, input_id in enumerate(input_ids[0, 1:]):
-			log_probs = torch.log_softmax(logits[0, i, :], -1)
-			score += log_probs[input_id]
+		tokenized = self.tokenizer(prompts)
+		all_input_ids: list[list[int]] = tokenized["input_ids"] # type: ignore
+	
+		prefix_length = 0
+		while all(all_input_ids[0][prefix_length] == all_input_ids[i][prefix_length] for i in range(len(prompts))):
+			prefix_length += 1
 		
-		return score
+		assert prefix_length >= 1
+
+		scores = torch.zeros([len(prompts)])
+		for i in range(len(prompts)):
+			input_ids = torch.tensor([all_input_ids[i]])
+			logits = self.model(input_ids).logits
+			for j, input_id in enumerate(input_ids[0, prefix_length:]):
+				j += prefix_length - 1
+				log_probs = torch.log_softmax(logits[0, j, :], -1)
+				scores[i] += log_probs[input_id]
+		
+			scores[i] /= (input_ids.shape[-1] - 1)
+		
+		return scores.tolist()
 	
 	def generate(self, prompt: str, params: GenerationParams):
 		if prompt.endswith(" "):
