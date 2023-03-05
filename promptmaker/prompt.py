@@ -139,8 +139,6 @@ class ReadAlternativeToVariableAction(PromptAction):
 			results.append((score, prompt, alternative))
 		
 		state.prompt, state.vars[self.var] = sorted(results, key=lambda s: -s[0])[0][1:]
-		text = state.generator.generate(state.prompt, self.params)
-		state.prompt += text
 	
 	def __repr__(self):
 		return f"<ReadAlternativeToVariableAction var={repr(self.var)} alternatives={repr(self.alternatives)}>"
