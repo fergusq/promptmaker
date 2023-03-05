@@ -132,13 +132,13 @@ class ReadAlternativeToVariableAction(PromptAction):
 		if self.params.temperature != 0:
 			raise NotImplementedError
 		
-		results = []
+		results: list[tuple[float, str, str]] = []
 		for alternative in self.alternatives:
 			prompt = state.prompt + alternative
 			score = state.generator.score(prompt)
 			results.append((score, prompt, alternative))
 		
-		state.prompt, state.vars[self.var] = sorted(results, key=lambda s: -s[0])[1:]
+		state.prompt, state.vars[self.var] = sorted(results, key=lambda s: -s[0])[0][1:]
 		text = state.generator.generate(state.prompt, self.params)
 		state.prompt += text
 	
