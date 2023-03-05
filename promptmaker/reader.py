@@ -2,7 +2,7 @@ import re
 from typing import NamedTuple
 
 from .generator import GenerationParams
-from .prompt import PromptTemplate, AppendPromptAction, EvalAction, ReadVariableAction, ReadAlternativeToVariableAction, WhileAction, IfAction
+from .prompt import PromptTemplate, AppendPromptAction, EvalAction, ReadVariableAction, ReadAlternativeToVariableAction, WhileAction, IfAction, HiddenAction
 
 
 class Token(NamedTuple):
@@ -41,9 +41,9 @@ def lex(text: str) -> list[Token]:
 	i = 0
 	while i < len(text):
 		pos = i
-		if text[i] not in "<{":
+		if text[i] not in "<{@":
 			acc = ""
-			while i < len(text) and text[i] not in "<{":
+			while i < len(text) and text[i] not in "<{@":
 				char = text[i]; i += 1
 				if char == "\\" and i < len(text):
 					next = text[i]; i += 1
@@ -59,8 +59,12 @@ def lex(text: str) -> list[Token]:
 			if acc:
 				ans.append(Token(pos, i, acc))
 		
-		elif text[i] in "<{" and i < len(text):
-			[paren_open, paren_close] = ["<", ">"] if text[i] == "<" else ["{", "}"]
+		elif text[i] in "<{@" and i < len(text):
+			paren_open, paren_close = {
+				"<": ("<", ">"),
+				"{": ("{", "}"),
+				"@": ("@", "\n"),
+			}[text[i]]
 			i += 1
 			depth = 0
 			acc = ""
@@ -119,7 +123,7 @@ class Reader:
 			token = tokens[0]
 			if isinstance(token, ParenToken):
 				if token.get_paren() == "{":
-					if token.get_head() in {"endwhile", "endif"}:
+					if token.get_head() in {"endwhile", "endif", "endhidden"}:
 						break
 
 					tokens, action = self.read_expr(tokens)
@@ -153,6 +157,12 @@ class Reader:
 			tokens, body = self.read_script(tokens[1:])
 			tokens = expect_head(tokens, "endif")
 			return tokens, IfAction(cond, body)
+		
+		elif expr_token.get_head() == "hidden":
+			assert expr_token.get_tail() == ""
+			tokens, body = self.read_script(tokens[1:])
+			tokens = expect_head(tokens, "endhidden")
+			return tokens, HiddenAction(body)
 		
 		elif expr_token.text[1:].startswith("\n"):
 			return tokens[1:], EvalAction(compile(expr_token.get_content(), "<inline>", "exec"))

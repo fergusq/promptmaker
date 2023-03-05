@@ -85,6 +85,19 @@ class IfAction(PromptAction):
 		return f"<IfAction cond={repr(self.cond)} body={repr(self.body)}>"
 
 
+class HiddenAction(PromptAction):
+	def __init__(self, body: PromptTemplate):
+		self.body = body
+	
+	def exec(self, state: GeneratorState):
+		prompt = state.prompt
+		self.body.exec(state)
+		state.prompt = prompt
+	
+	def __repr__(self):
+		return f"<HiddenAction body={repr(self.body)}>"
+
+
 class EvalAction(PromptAction):
 	def __init__(self, code: str | CodeType):
 		self.code = code
