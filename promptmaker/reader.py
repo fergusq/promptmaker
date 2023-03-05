@@ -1,7 +1,8 @@
+import re
 from typing import NamedTuple
 
 from .generator import GenerationParams
-from .prompt import PromptTemplate, AppendPromptAction, EvalAction, ReadVariableAction, WhileAction, IfAction
+from .prompt import PromptTemplate, AppendPromptAction, EvalAction, ReadVariableAction, ReadAlternativeToVariableAction, WhileAction, IfAction
 
 
 class Token(NamedTuple):
@@ -165,21 +166,37 @@ class Reader:
 
 		var_code = var_token.get_content()
 
+		if m := re.fullmatch(r"\(([^)]+\|[^)]+)) *([^?]*)(\??)", var_code):
+			alternatives = m.group(1).split("|")
+			variable = m.group(2)
+			greedy = m.group(3) == "?"
+			params = GenerationParams()
+			if greedy:
+				params = params._replace(temperature=0)
+			return tokens[1:], ReadAlternativeToVariableAction(alternatives, variable, params)
+
 		fields = var_code.split(":")
 		var_code = fields[0]
 		
 		append = False
 		strip = False
-		while var_code[-1:] in {"+", "!"}:
+		greedy = False
+		while var_code[-1:] in {"+", "!", "?"}:
 			if var_code[-1] == "+":
 				append = True
 			
 			elif var_code[-1] == "!":
 				strip = True
 			
+			elif var_code[-1] == "?":
+				greedy = True
+			
 			var_code = var_code[:-1]
 		
 		params = GenerationParams()
+		if greedy:
+			params = params._replace(temperature=0)
+		
 		if " " in var_code:
 			words = var_code.split(" ")
 			var_code = words[-1]

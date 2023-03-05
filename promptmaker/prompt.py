@@ -121,3 +121,26 @@ class ReadVariableAction(PromptAction):
 	
 	def __repr__(self):
 		return f"<ReadVariableAction var={repr(self.var)}>"
+
+class ReadAlternativeToVariableAction(PromptAction):
+	def __init__(self, alternatives: list[str], var: str, params: GenerationParams):
+		self.alternatives = alternatives
+		self.var = var
+		self.params = params
+	
+	def exec(self, state: GeneratorState):
+		if self.params.temperature != 0:
+			raise NotImplementedError
+		
+		results = []
+		for alternative in self.alternatives:
+			prompt = state.prompt + alternative
+			score = state.generator.score(prompt)
+			results.append((score, prompt, alternative))
+		
+		state.prompt, state.vars[self.var] = sorted(results, key=lambda s: -s[0])[1:]
+		text = state.generator.generate(state.prompt, self.params)
+		state.prompt += text
+	
+	def __repr__(self):
+		return f"<ReadAlternativeToVariableAction var={repr(self.var)} alternatives={repr(self.alternatives)}>"

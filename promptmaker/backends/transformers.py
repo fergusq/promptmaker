@@ -61,6 +61,21 @@ class TransformersGenerator(Generator):
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.model.to(self.device)
 	
+	def score(self, prompt: str):
+		if self.petals:
+			raise NotImplementedError
+
+		tokenized = self.tokenizer(prompt, return_tensors="pt")
+		input_ids = tokenized["input_ids"].to(self.device) # type: ignore
+
+		logits = self.model(input_ids).logits
+		score = 0
+		for i, input_id in enumerate(input_ids[0, :]):
+			log_probs = torch.log_softmax(logits[0, i, :], -1)
+			score += log_probs[input_id]
+		
+		return score
+	
 	def generate(self, prompt: str, params: GenerationParams):
 		if prompt.endswith(" "):
 			space = True

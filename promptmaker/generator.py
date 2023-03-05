@@ -5,6 +5,9 @@ from typing import NamedTuple
 class Generator:
 	def generate(self, prompt: str, params: "GenerationParams") -> str:
 		...
+	
+	def score(self, prompt: str) -> float:
+		...
 
 
 class GenerationParams(NamedTuple):
